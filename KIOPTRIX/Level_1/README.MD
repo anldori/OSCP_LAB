@@ -154,7 +154,7 @@ nikto -h http://172.10.0.222
 
 ## Exploitation
 
-### Solution 1: Apache 1.3.20
+### Solution 1: Apache 1.3.20 & mod_ssl 2.8.4
 
 With the version of Apache Web sever 1.3.20 and mod_ssl 2.8.4 as result of Enumeration step, go to exploitdb to get exploiting poc/information:
 
