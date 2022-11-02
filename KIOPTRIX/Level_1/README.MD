@@ -264,7 +264,7 @@ uid=0(root) gid=0(root) groups=0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10
 
 ### Solution 2: Samba smbd
 
-As result of Enumeration step, I know that this target is running Samba, but I don't know what version it it. 
+As result of Enumeration step, I know that this target is running Samba, but I don't know what version it is. 
 
 Connect to this target:
 
