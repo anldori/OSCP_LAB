@@ -192,3 +192,35 @@ janitor@dc-9:~$
 ```
 
 ## Privilege Escalation
+
+List all file in user home directory:
+
+```sh
+janitor@dc-9:~$ ls -la
+total 16
+drwx------  4 janitor janitor 4096 Dec  8 17:27 .
+drwxr-xr-x 19 root    root    4096 Dec 29  2019 ..
+lrwxrwxrwx  1 janitor janitor    9 Dec 29  2019 .bash_history -> /dev/null
+drwx------  3 janitor janitor 4096 Dec  8 17:27 .gnupg
+drwx------  2 janitor janitor 4096 Dec 29  2019 .secrets-for-putin
+```
+
+Got the secret folder named `secrets-for-putin`. Discover dis folder:
+
+```sh
+janitor@dc-9:~$ cd .secrets-for-putin/
+janitor@dc-9:~/.secrets-for-putin$ ls -la
+total 12
+drwx------ 2 janitor janitor 4096 Dec 29  2019 .
+drwx------ 4 janitor janitor 4096 Dec  8 17:27 ..
+-rwx------ 1 janitor janitor   66 Dec 29  2019 passwords-found-on-post-it-notes.txt
+
+janitor@dc-9:~/.secrets-for-putin$ cat passwords-found-on-post-it-notes.txt 
+BamBam01
+Passw0rd
+smellycats
+P0Lic#10-4
+B4-Tru3-001
+4uGU5T-NiGHts
+```
+
