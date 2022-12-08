@@ -101,8 +101,8 @@ for row in csv_reader:
 
 The target is block SSH port. So I find the way to cause it allows to connect to my exploit machine. I got this: 
 
-- https://www.unixmen.com/knockd-detailed-simpler/
 - https://wiki.archlinux.org/title/Port_knocking
+- https://www.unixmen.com/knockd-detailed-simpler/
 
 Check the `knocd.conf` on uri `/manage.php?file=../../../../../etc/knockd.conf`:  
 
