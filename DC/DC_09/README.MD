@@ -104,7 +104,7 @@ The target is block SSH port. So I find the way to cause it allows to connect to
 - https://wiki.archlinux.org/title/Port_knocking
 - https://www.unixmen.com/knockd-detailed-simpler/
 
-Check the `knocd.conf` on uri `/manage.php?file=../../../../../etc/knockd.conf`:  
+Check the `knocd.conf` on URI `/manage.php?file=../../../../../etc/knockd.conf`:  
 
 ```
 [options]
