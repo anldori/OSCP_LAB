@@ -166,10 +166,10 @@ retn = "BBBB"
 
 Chạy script khai thác. Server sẽ bị crash.
 
-Chạy lệnh sau trên Immunity Debugger. Với 0193FA30 là giá trị con trỏ của ESP sau khi server bị crash:
+Chạy lệnh sau trên Immunity Debugger:
 
 ```
-!mona compare -f C:\mona\oscp\bytearray.bin -a 0193FA30
+!mona compare -f C:\mona\oscp\bytearray.bin -a esp
 ```
 
 Kết quả nhận được giá trị \x11 là bad character (nếu có các ký tự liền kề nhau thì lấy ký tự bên trái nhất), tiến hành thêm giá trị này vào mảng byte:
