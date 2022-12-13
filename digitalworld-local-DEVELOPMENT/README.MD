@@ -186,4 +186,4 @@ Phát hiện một file ẩn có tên `test.pcap` tại root directory. Tải fi
 
 Thấy một trang bí mật là `/developmentsecretpage/directortestpagev1.php`. Tiến hành mở trang này:
 
-![img](img/directortestpagev1.php)
+![img](img/directortestpagev1.png)
