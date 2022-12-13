@@ -1,5 +1,8 @@
-Recon
+# Recon
+
 ```
+nmap -sSCV 192.168.182.136
+
 Starting Nmap 7.93 ( https://nmap.org ) at 2022-12-12 23:12 PST
 Nmap scan report for 192.168.182.136
 Host is up (0.00068s latency).
@@ -137,4 +140,50 @@ Truy cập trang chủ tại 192.168.182.136:8080:
 
 ![img](img/home.png)
 
-192.168.182.136/developmentsecretpage/directortestpagev1.php
+Đến đường dẫn `html_pages`:
+
+```
+-rw-r--r-- 1 www-data www-data      285 Sep 26 17:46 about.html
+-rw-r--r-- 1 www-data www-data     1049 Sep 26 17:51 config.html
+-rw-r--r-- 1 www-data www-data      199 Jul 23 15:37 default.html
+-rw-r--r-- 1 www-data www-data     1086 Sep 28 09:22 development.html
+-rw-r--r-- 1 www-data www-data      446 Jun 14 01:37 downloads.html
+-rw-r--r-- 1 www-data www-data      285 Sep 26 17:53 error.html
+-rw-r--r-- 1 www-data www-data        0 Sep 28 09:23 html_pages
+-rw-r--r-- 1 www-data www-data      751 Sep 28 09:22 index.html
+-rw-r--r-- 1 www-data www-data      202 Sep 26 17:57 login.html
+-rw-r--r-- 1 www-data www-data      682 Jul 23 15:36 register.html
+-rw-r--r-- 1 www-data www-data       74 Jul 23 16:29 tryharder.html
+-rw-r--r-- 1 www-data www-data      186 Sep 26 17:58 uploads.html
+```
+
+Duyệt qua các trang được liệt kê ở trên, dừng lại ở trang `downloads.html` và xem source:
+
+```
+<html>
+<head><title>Useful Resources</title>
+</head>
+<body>
+<p>Downloads:</p>
+<br />
+<a href="./martell.jpg">Patrick's Favourite Drink</a>
+<a href="./tryharder.jpg">The Intern's Life Motto</a>
+<!-- <a href="./test.pcap">Logging</a> -->
+<br />
+<br />
+<br />
+<br />
+<br />
+<hr>
+<i>Powered by IIS 6.0</i>
+</body>
+</html>
+```
+
+Phát hiện một file ẩn có tên `test.pcap` tại root directory. Tải file này xuống và mở bằng wireshark:
+
+![img](img/pcap.png)
+
+Thấy một trang bí mật là `/developmentsecretpage/directortestpagev1.php`. Tiến hành mở trang này:
+
+![img](img/directortestpagev1.php)
