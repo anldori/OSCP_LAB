@@ -30,6 +30,7 @@ sudo netdiscover
 ```
 
 Target: 172.10.1.48
+
 Attacker: 172.10.1.49
 
 ## Enumeration
@@ -94,7 +95,6 @@ nikto -host http://172.10.1.48/
 
 ```
 whatweb http://172.10.1.48                                                                
-
 ```
 
 ```
@@ -172,7 +172,11 @@ Read the apache configuration file, the file location is ```/usr/local/etc/apach
 
 ![](img/httpd_config.png)
 
-Search for "8080", we know that this page require "User-Agent ^Mozilla/4.0" to access it. Open http://172.10.1.48:8080 with BurpSuite, replace the User-Agent to Mozilla/4.0, we found the Index page of phptax:
+Search for "8080", we know that this page require "User-Agent ^Mozilla/4.0" to access it. Open http://172.10.1.48:8080 with BurpSuite, replace the User-Agent to Mozilla/4.0.
+
+![](img/burp_config.png)
+
+We found the Index page of phptax:
 
 ![](img/phptax_index.png)
 
